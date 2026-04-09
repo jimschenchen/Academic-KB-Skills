@@ -216,8 +216,9 @@ Optionally, an HTML annotation from `/kb read` may already exist in the same fol
    - 8: Contributions
    - 9: Results / Evidence
    - 10: Discussion / Limitations
+   - 11: Conclusion / Future Work
 
-   Each section should be substantive (not just one sentence). Use Chinese for section content where it aids comprehension, matching the existing vault style. If an HTML annotation is available, leverage its highlights and argument analysis to enrich sections 1-10.
+   Each section should be substantive (not just one sentence). **Bilingual format is required**: write each section with Chinese first, then English below (separated by a blank line), so both languages appear side-by-side within every section. Technical terms and proper nouns stay in English in both versions. If an HTML annotation is available, leverage its highlights and argument analysis to enrich sections 1-11.
 
 6. **Weave wikilinks throughout the note — this is critical for Obsidian's graph and backlink features.** The paper note should contain at least 5-10 wikilinks spread across sections 1-10. Two types:
 
@@ -511,11 +512,12 @@ Support filters:
 
 ## Language Conventions
 
-The vault uses a bilingual style. Follow whatever style the existing files already use — consistency with the vault matters more than any rule here.
+The vault uses a **bilingual (中英双语) style**. Every paper note section is written twice — Chinese first, then English — within the same section. This ensures the vault is useful for both Chinese-native and English-native readers.
 
 - **Frontmatter**: always English (for Dataview queryability)
+- **Section headers**: English with Chinese annotation where conventional (e.g., `## 1. Background / Motivation（面向大众读者）`)
+- **Section body — bilingual parallel format**: Write the Chinese version first (2-4 paragraphs), then leave a blank line, then write the English version (2-4 paragraphs). Both versions should convey the same content but each should read naturally in its own language — do NOT produce a word-for-word translation. Technical terms, method names, paper titles, and proper nouns remain in English in both versions.
 - **Section headers in topic files**: Chinese with English in parentheses (e.g., `## Insight Synthesis`, `## 相关论文与资源`)
-- **Content body**: the user's preferred language for analytical content, English for technical terms, paper titles, and proper nouns
 - **Wikilinks**: always use the note's filename (the original full paper title), optionally with display text: `[[Memory in the Age of AI Agents|Hu 2026]]`
 
 ## Error Handling

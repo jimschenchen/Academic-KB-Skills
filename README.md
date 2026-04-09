@@ -31,7 +31,7 @@ You can also give it a paper name, arXiv ID, or URL — it will download the PDF
 **What it does:**
 - Downloads the PDF if given a title, arXiv ID, DOI, or URL (confirms with you first)
 - Parses PDF, extracts metadata and full text
-- Generates structured paper note (10 standard sections + complete frontmatter)
+- Generates structured bilingual paper note (12 sections 0-11, each with Chinese + English in parallel, + complete frontmatter)
 - Automatically leverages HTML annotation from `/kb read` if available
 - Suggests topic classification, updates corresponding topic files
 - Embeds 5-10+ wikilinks throughout the note (to topics and other papers)

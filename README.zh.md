@@ -31,7 +31,7 @@
 **做了什么：**
 - 如果输入是标题、arXiv ID、DOI 或 URL，先下载 PDF（下载前会跟你确认）
 - 解析 PDF，提取元数据和全文
-- 生成结构化 paper note（10 个标准 section + 完整 frontmatter）
+- 生成结构化中英双语 paper note（12 个 section 0-11，每个 section 中英并列 + 完整 frontmatter）
 - 如果已有 `/kb read` 产出的 HTML annotation，会自动利用它
 - 自动建议 topics 归类，更新对应 topic 文件的「相关论文与资源」
 - 在正文中嵌入 5-10+ 个 wikilinks（到 topics 和其他 papers）
