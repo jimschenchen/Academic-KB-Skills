@@ -140,6 +140,23 @@ acknowledged limitations? What limitations does the paper NOT acknowledge?]
 does it suggest? What are the most promising next steps? 1-3 paragraphs.]
 ```
 
+## Deep-Read Section Embeds
+
+When a paper triggers deep-read (see SKILL.md Step 5b), each section that has a corresponding deep-read note in `sections/` should include a collapsed embed callout at the end of the section:
+
+```markdown
+## 7. Approach Overview
+
+[中文版本：... 2-4 段 ...]
+
+[English version: ... 2-4 paragraphs ...]
+
+> [!abstract]- 📖 深度精读笔记
+> ![[sections/07-Methodology]]
+```
+
+This keeps the main note scannable while giving readers one-click access to the full deep-read analysis. Only add embeds for sections that actually have a corresponding section note — not every section will have one (trivial sections are skipped).
+
 ## Writing Guidelines
 
 - **Depth over breadth**: Each section should be substantive, not just a sentence. Aim for 2-4 paragraphs per language per section, more for complex papers.
@@ -147,3 +164,4 @@ does it suggest? What are the most promising next steps? 1-3 paragraphs.]
 - **Inline wikilinks**: Link to relevant topics (`[[Agent Memory]]`) and other papers in the vault (`[[Paper Title|Short Display]]`) throughout both language versions.
 - **Critical thinking**: Don't just summarize — analyze. Note strengths, weaknesses, connections to other work in the vault.
 - **HTML annotation leverage**: If an HTML annotation from `/kb read` exists, its paragraph-level analysis (论证功能, 逻辑角色, 论证技巧) is gold for enriching sections 1-11. Use the structural analysis to write more insightful notes.
+- **Section notes complement, not replace, main sections**: When deep-read is active, the main note sections still provide the high-level summary. Section notes go deeper with insights, key quotes, and cross-references. Don't make the main note section thinner just because a section note exists.

@@ -17,7 +17,11 @@ vault-root/
 │   ├── [Paper Title]/                # one folder per paper, using the original full title
 │   │   ├── [Paper Title].md          # structured paper note
 │   │   ├── [Paper Title].pdf         # original PDF
-│   │   └── annotation.html           # optional, from /kb read
+│   │   ├── annotation.html           # optional, from /kb read
+│   │   └── sections/                 # optional, auto-created for long/complex papers
+│   │       ├── 01-Introduction.md    # deep-read note per section
+│   │       ├── 03-Methodology.md
+│   │       └── ...
 │   └── Paper Database.md             # Dataview dashboard (auto-queries, do not edit manually)
 ├── articles/
 │   ├── [Article Title]/              # one folder per article, using the original title
@@ -43,7 +47,7 @@ This skill orchestrates several companion skills — use them for sub-tasks:
 
 | Command | Usage | Description |
 |---------|-------|-------------|
-| `ingest` | `/kb ingest <pdf-path-or-query>` | Download (if needed) + parse PDF → structured paper note with full frontmatter and 10-section analysis |
+| `ingest` | `/kb ingest <pdf-path-or-query>` | Download (if needed) + parse PDF → structured paper note with full frontmatter, 12-section analysis, and optional deep-read section notes |
 | `ingest article` | `/kb ingest article <url-or-text>` | Capture a blog/report/social-media post → structured article note with 5-section analysis |
 | `read` | `/kb read <pdf-path>` | Annotate a PDF → full dual-column HTML with 5-color highlights |
 | `compile` | `/kb compile <topic>` or `/kb compile --all` | Synthesize all papers and articles under a topic → update topic file |
@@ -55,6 +59,10 @@ This skill orchestrates several companion skills — use them for sub-tasks:
 - `--questions "Q1:... Q2:..."` — switch to Question mode (Mode A)
 - `--questions` (no arg) — interactive: Claude asks you for questions
 - `--lang en|zh` — override annotation language (default: `zh`)
+
+**Flags (for `ingest`):**
+- `--deep` — force section-level deep-read notes (creates `sections/` subdirectory)
+- `--no-deep` — skip section-level deep-read even for long papers
 
 ---
 
@@ -204,7 +212,7 @@ Optionally, an HTML annotation from `/kb read` may already exist in the same fol
    - `relevance`: make your best estimate (1-5) based on the user's research focus, but tell the user your reasoning so they can adjust
    - `summary`, `research_question`, `contributions`, `findings`: fill these from the paper content
 
-5. **Write the 10-section paper note.** Follow the template in `references/paper-note-template.md`. The sections are:
+5. **Write the 12-section paper note (sections 0-11).** Follow the template in `references/paper-note-template.md`. The sections are:
    - 0: Publication Info
    - 1: Background / Motivation (general audience)
    - 2: Background / Motivation (domain experts)
@@ -219,6 +227,56 @@ Optionally, an HTML annotation from `/kb read` may already exist in the same fol
    - 11: Conclusion / Future Work
 
    Each section should be substantive (not just one sentence). **Bilingual format is required**: write each section with Chinese first, then English below (separated by a blank line), so both languages appear side-by-side within every section. Technical terms and proper nouns stay in English in both versions. If an HTML annotation is available, leverage its highlights and argument analysis to enrich sections 1-11.
+
+   **Section embed for deep-read papers:** If step 5b created section notes, add an Obsidian embed at the end of each corresponding section in the main note:
+   ```markdown
+   > [!abstract]- 📖 深度精读笔记
+   > ![[sections/03-Methodology]]
+   ```
+   Use a collapsed callout so the main note stays scannable, but readers can expand to see the full deep-read inline.
+
+5b. **Deep-read assessment and section note generation.** Evaluate whether this paper warrants section-level deep-read notes. This step produces individual notes per original paper section in `papers/[Paper Title]/sections/`.
+
+   **Trigger logic (evaluated automatically unless overridden by `--deep` / `--no-deep`):**
+   - Count the number of distinct sections in the paper (Introduction, Related Work, Methods, Experiments, etc.)
+   - Estimate total paper length (page count or word count)
+   - A paper qualifies for deep-read if **any** of these hold:
+     - Total paper length ≥ 12 pages (excluding references)
+     - Any single section spans ≥ 3 pages
+     - The paper is tagged as `survey` or the user's `relevance` estimate is ≥ 4
+     - The `--deep` flag was explicitly provided
+   - Skip if `--no-deep` was provided or the paper is very short (≤ 6 pages)
+
+   **If deep-read is triggered:**
+
+   a. **Create the `sections/` directory** at `papers/[Paper Title]/sections/`.
+
+   b. **Identify sections to deep-read.** Map the paper's original section structure (e.g., "1 Introduction", "2 Related Work", "3 Method", "3.1 Architecture", "3.2 Training", "4 Experiments", "5 Discussion"). For papers with deep sub-section hierarchies, group at the top-level section (e.g., "3 Method" covers 3.1–3.N in one note) unless a sub-section is itself very long (≥ 2 pages), in which case give it its own note.
+
+   c. **For each section, create a deep-read note** following the template in `references/section-note-template.md`. The filename follows `NN-Section-Name.md` (e.g., `01-Introduction.md`, `03-Methodology.md`). Each note contains:
+      - **章节定位 callout**: the section's role in the paper's argument chain, prerequisites, and transition to the next section
+      - **精读摘要**: deep summary of the section's core argument, methodology details, or experimental findings (3-6 paragraphs, scaled to section length)
+      - **关键 Insight**: 2-5 transferable insights extracted from this section (using `[!tip]` callouts)
+      - **原文关键段落**: 2-4 verbatim quotes of the most valuable paragraphs (using `[!quote]` callouts with section/page references)
+      - **与其他工作的联系**: connections to other papers/topics in the vault via wikilinks
+
+   d. **Frontmatter for each section note:**
+      ```yaml
+      ---
+      parent: "[[Paper Title]]"
+      section_number: 3
+      section_title: "Methodology"
+      page_range: "pp. 4-8"
+      tags: [section-note]
+      ---
+      ```
+
+   e. **Skip trivial sections.** Do not create section notes for: Abstract (already in frontmatter), Acknowledgements, purely bibliographic Reference lists, or sections shorter than half a page. The Publication Info (section 0) in the main note already covers metadata.
+
+   f. **After generating all section notes,** inform the user:
+      - How many section notes were created
+      - Which sections were skipped and why
+      - Highlight the 2-3 most insight-rich sections
 
 6. **Weave wikilinks throughout the note — this is critical for Obsidian's graph and backlink features.** The paper note should contain at least 5-10 wikilinks spread across sections 1-10. Two types:
 
@@ -235,8 +293,9 @@ Optionally, an HTML annotation from `/kb read` may already exist in the same fol
 
 10. **Append to kb-log.md:**
     ```
-    ## [YYYY-MM-DD] ingest | [Paper Title] ([venue], [year])
+    ## [YYYY-MM-DD] ingest | [Paper Title] ([venue], [year]) [+N section notes]
     ```
+    The `[+N section notes]` suffix is only added when deep-read was triggered. Omit it for papers without section notes.
 
 ### After Ingest
 
@@ -244,6 +303,7 @@ Present a summary to the user:
 - Paper title
 - Topics assigned (with reasoning)
 - Relevance score (with reasoning)
+- Deep-read status: whether section notes were created, how many, and which sections are most insight-rich
 - Any proposed new topics
 - Any fields left blank that the user should fill
 
