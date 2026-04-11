@@ -23,7 +23,7 @@ status: unread                # unread / reading / read / archived
 read_date:                    # YYYY-MM-DD, fill when user marks as read
 relevance: 3                  # 1 (low) – 5 (high) for user's research
 topics:
-  - Topic Name A              # PLAIN TEXT, not wikilinks. Must match filenames in papers_topics/
+  - Topic Name A              # PLAIN TEXT, not wikilinks. Must match filenames in topics/
   - Topic Name B
 keywords:
   - keyword1
@@ -44,7 +44,7 @@ findings:
 
 ## Field Notes
 
-**topics field**: This is the critical link between papers and topic files. Use exact topic names that match files in `papers_topics/`. The Dataview query in Paper Database.md uses `FLATTEN topics AS topic` to group papers by topic.
+**topics field**: This is the critical link between papers and topic files. Use exact topic names that match files in `topics/`. The Dataview query in Paper Database.md uses `FLATTEN topics AS topic` to group papers by topic.
 
 **tags field**: First tag is always `paper`. Second tag should indicate paper type (survey, empirical, system, etc.). Remaining tags are domain-specific and should be lowercase, hyphenated.
 

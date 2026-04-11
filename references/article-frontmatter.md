@@ -15,7 +15,7 @@ tags:
   - article                          # ALWAYS first tag
   - your-domain-tags                 # e.g., agent, LLM, tutorial
 topics:
-  - Topic Name A                     # PLAIN TEXT, must match filenames in papers_topics/
+  - Topic Name A                     # PLAIN TEXT, must match filenames in topics/
   - Topic Name B
 status: unread                       # unread / read / archived
 relevance: 3                         # 1 (low) – 5 (high) for user's research
@@ -41,7 +41,7 @@ recommended_papers:                  # papers mentioned or recommended in this a
 
 **recommended_papers**: Wikilinks to papers in `papers/` that the article mentions, reviews, or recommends. This creates a bridge between the articles and papers sections of the vault.
 
-**topics field**: Same as papers — plain text matching filenames in `papers_topics/`. This is what allows topic files to aggregate insights from both papers and articles.
+**topics field**: Same as papers — plain text matching filenames in `topics/`. This is what allows topic files to aggregate insights from both papers and articles.
 
 **relevance field**: Same scale as papers:
 - 5: Directly relevant to current research, contains actionable insights

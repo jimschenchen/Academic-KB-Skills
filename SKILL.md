@@ -28,10 +28,10 @@ vault-root/
 │   │   ├── [Article Title].md        # structured article note (5-section)
 │   │   └── snapshot.html             # optional, web page snapshot for link rot prevention
 │   └── Article Database.md           # Dataview dashboard (create if missing)
-├── papers_topics/
+├── topics/
 │   ├── [Topic Name].md               # topic synthesis file (aggregates both papers and articles)
 │   └── Topics Index.md               # central hub with mermaid map
-├── papers_queries/                    # cross-corpus research Q&A (create if missing)
+├── queries/                    # cross-corpus research Q&A (create if missing)
 │   └── [YYYY-MM-DD] [Question Slug].md
 └── kb-log.md                         # append-only audit trail (create at vault root if missing)
 ```
@@ -51,7 +51,7 @@ This skill orchestrates several companion skills — use them for sub-tasks:
 | `ingest article` | `/kb ingest article <url-or-text>` | Capture a blog/report/social-media post → structured article note with 5-section analysis |
 | `read` | `/kb read <pdf-path>` | Annotate a PDF → full dual-column HTML with 5-color highlights |
 | `compile` | `/kb compile <topic>` or `/kb compile --all` | Synthesize all papers and articles under a topic → update topic file |
-| `query` | `/kb query "<question>"` | Answer a cross-corpus research question → save to papers_queries/ |
+| `query` | `/kb query "<question>"` | Answer a cross-corpus research question → save to queries/ |
 | `lint` | `/kb lint` | Health check: orphan papers/articles, dead wikilinks, stale topics, frontmatter gaps |
 | `log` | `/kb log` | Show recent operations from kb-log.md |
 
@@ -207,7 +207,7 @@ Optionally, an HTML annotation from `/kb read` may already exist in the same fol
 
 4. **Fill the frontmatter.** Use the exact schema from `references/paper-frontmatter.md`. Every field matters for Dataview queries. Key rules:
    - `tags`: always include `paper` as the first tag, then domain tags
-   - `topics`: plain text array (NOT wikilinks) — e.g., `[Agent Memory, Agent RL]`. Only use topic names that exist in `papers_topics/`, or propose a new one and flag it to the user
+   - `topics`: plain text array (NOT wikilinks) — e.g., `[Agent Memory, Agent RL]`. Only use topic names that exist in `topics/`, or propose a new one and flag it to the user
    - `status`: set to `unread` initially (the user will change it after reading)
    - `relevance`: make your best estimate (1-5) based on the user's research focus, but tell the user your reasoning so they can adjust
    - `summary`, `research_question`, `contributions`, `findings`: fill these from the paper content
@@ -285,7 +285,7 @@ Optionally, an HTML annotation from `/kb read` may already exist in the same fol
 
    A paper note with zero topic/paper wikilinks is incomplete — the whole point of the knowledge base is cross-linking. Scan the vault's existing papers for related work and link generously.
 
-7. **Classify into topics.** Based on the paper's content, suggest 2-5 topics from the existing `papers_topics/` directory. If a paper clearly belongs to a topic that doesn't exist yet, propose creating it (but don't create it automatically — ask the user first).
+7. **Classify into topics.** Based on the paper's content, suggest 2-5 topics from the existing `topics/` directory. If a paper clearly belongs to a topic that doesn't exist yet, propose creating it (but don't create it automatically — ask the user first).
 
 8. **Update topic files.** For each topic in the paper's `topics` field, open the corresponding topic file and add a wikilink to the new paper in its `相关论文` section. Use the format: `- [[Paper Title|Short Description]] — one-line summary of relevance`.
 
@@ -341,7 +341,7 @@ Present a summary to the user:
    - `source_url`: critical — always include the original URL if available
    - `source_type`: one of `blog`, `tech-report`, `white-paper`, `social-media`, `newsletter`
    - `platform`: specific platform name (e.g., `personal blog`, `微信公众号`, `小红书`, `Medium`)
-   - `topics`: same as papers — plain text matching `papers_topics/` filenames
+   - `topics`: same as papers — plain text matching `topics/` filenames
    - `recommended_papers`: wikilinks to papers the article mentions. Check `papers/` for existing titles.
 
 4. **Write the 5-section article note.** Follow the template in `references/article-note-template.md`:
@@ -358,7 +358,7 @@ Present a summary to the user:
    - **Paper links**: `[[Paper Title|display text]]` for papers the article references that exist in the vault
    - **Article links**: `[[Article Title|display text]]` for other articles in the vault if related
 
-6. **Classify into topics.** Suggest 1-3 topics from existing `papers_topics/`. Articles may also suggest papers worth ingesting — flag these to the user.
+6. **Classify into topics.** Suggest 1-3 topics from existing `topics/`. Articles may also suggest papers worth ingesting — flag these to the user.
 
 7. **Update topic files.** For each topic in the article's `topics` field, add a wikilink in the topic file's `相关论文与资源` section. Use a 📝 marker to distinguish from papers: `- 📝 [[Article Title|Short Description]] — one-line summary`.
 
@@ -379,17 +379,19 @@ Present a summary to the user:
 
 ## Procedure 2: Compile a Topic
 
-**Input:** A topic name (must match a file in `papers_topics/`), or `--all` to compile every topic.
+**Input:** A topic name (must match a file in `topics/`), or `--all` to compile every topic.
 
 Compile reads all papers and articles tagged with that topic and updates the topic synthesis file. The goal is NOT to rewrite from scratch every time — it's to incrementally improve the synthesis as new papers are added.
 
 ### Steps
 
-1. **Load the topic file** from `papers_topics/[Topic Name].md`.
+1. **Load the topic file** from `topics/[Topic Name].md`.
 
 2. **Find all papers and articles for this topic.** Scan `papers/` and `articles/` for all `.md` files where frontmatter `topics` contains this topic name (case-insensitive match).
 
 3. **Read each paper and article note.** For papers, focus on sections 3 (Problem Statement), 6 (Key Idea), 7 (Approach), 8 (Contributions), 9 (Results), 10 (Discussion). For articles, focus on sections 1 (Core Argument), 2 (Key Insights), 4 (Related Papers). You don't need to re-read the full PDFs or source pages — the notes are the source of truth.
+
+   **Bonus: section deep-read notes.** If a paper has a `sections/` subdirectory, scan the section notes for their **关键 Insight** callouts — these are pre-extracted, high-quality insights that can significantly enrich the topic synthesis. Particularly valuable for building framework comparison tables and identifying cross-paper patterns.
 
 4. **Surface key insights before writing.** Present to the user:
    - How many papers are in this topic (new since last compile, if known from kb-log.md)
@@ -442,7 +444,7 @@ Compile reads all papers and articles tagged with that topic and updates the top
 
    **Target length: 1500-2500 words** for the synthesis body (not counting paper lists and frontmatter). This is the intellectual core of the knowledge base — invest the effort here.
 
-   **What makes a good synthesis** (look at `papers_topics/Agent Memory.md` as the gold standard):
+   **What makes a good synthesis** (look at `topics/Agent Memory.md` as the gold standard):
    - **Framework comparison tables** — if multiple papers propose frameworks or taxonomies, build a table comparing their dimensions side by side, then analyze the convergences and divergences beneath the table
    - **Convergent conclusions** — what do the papers agree on? Cite specific evidence from each
    - **Tensions and debates** — where do papers disagree or take different approaches? Name the tension explicitly (e.g., "internal vs. external memory trade-off") and present both sides with citations
@@ -464,7 +466,7 @@ Compile reads all papers and articles tagged with that topic and updates the top
 
 ### Compile --all
 
-When `--all` is specified, iterate through every `.md` file in `papers_topics/` (excluding `Topics Index.md`). Compile each topic in sequence. At the end, do a global update of Topics Index.md with all counts.
+When `--all` is specified, iterate through every `.md` file in `topics/` (excluding `Topics Index.md`). Compile each topic in sequence. At the end, do a global update of Topics Index.md with all counts.
 
 ---
 
@@ -474,9 +476,16 @@ A query answers a research question by reading the vault — never from general 
 
 ### Phase A — Answer from the vault
 
-1. **Identify relevant topics.** Scan `papers_topics/` for topic files whose content relates to the question. Read their `主题概述` and `Insight Synthesis` sections.
+1. **Identify relevant topics.** Scan `topics/` for topic files whose content relates to the question. Read their `主题概述` and `Insight Synthesis` sections.
 
 2. **Identify relevant papers and articles.** From the topic files and from grepping frontmatter in both `papers/` and `articles/`, find sources that address the question. For papers, read sections 3, 6, 7, 8, 9, 10. For articles, read sections 1, 2, 4.
+
+   **Leverage section deep-read notes when available.** If a relevant paper has a `sections/` subdirectory, check the section notes for finer-grained insights:
+   - Read the **关键 Insight** (`[!tip]` callouts) across section notes — these are pre-extracted, transferable insights that directly answer many research questions.
+   - Read the **原文关键段落** (`[!quote]` callouts) for precise, citable evidence with page references.
+   - The **与其他工作的联系** section in each note may surface cross-paper connections not visible from the main note alone.
+   
+   Section notes are especially valuable for methodology questions (check `NN-Methodology.md`) and experimental details (check `NN-Experiments.md`). When citing insights from section notes, still attribute to the parent paper: `[[Paper Title]]`.
 
 3. **Synthesize the answer.** Properties:
    - Every factual claim traces back to a `[[Paper Title]]` or `[[Topic Name]]` citation
@@ -492,7 +501,7 @@ A query answers a research question by reading the vault — never from general 
 
 ### Phase B — File back
 
-5. **Save the answer** to `papers_queries/[YYYY-MM-DD] [Question Slug].md` with frontmatter:
+5. **Save the answer** to `queries/[YYYY-MM-DD] [Question Slug].md` with frontmatter:
    ```yaml
    ---
    title: "[Question]"
@@ -521,11 +530,11 @@ Run a health check across the entire vault. Report issues and propose fixes.
 
 ### Checks
 
-1. **Orphan papers/articles** — entries in `papers/` or `articles/` whose `topics` field is empty or contains only topics that don't exist in `papers_topics/`.
+1. **Orphan papers/articles** — entries in `papers/` or `articles/` whose `topics` field is empty or contains only topics that don't exist in `topics/`.
 
 2. **Dead wikilinks in topic files** — topic files that reference papers or articles that don't exist in `papers/` or `articles/`.
 
-3. **Dead wikilinks in notes** — paper/article notes that link to `[[Topic Name]]` where no such file exists in `papers_topics/`.
+3. **Dead wikilinks in notes** — paper/article notes that link to `[[Topic Name]]` where no such file exists in `topics/`.
 
 4. **Frontmatter gaps** — papers missing critical fields (`title`, `authors`, `year`, `topics`, `status`, `tags`); articles missing critical fields (`title`, `author`, `source_url`, `topics`, `tags`).
 
@@ -587,6 +596,6 @@ The vault uses a **bilingual (中英双语) style**. Every paper note section is
 - **Topic not found**: list existing topics and suggest closest match
 - **Paper/article already exists**: warn and ask whether to overwrite or skip
 - **kb-log.md missing**: create it at the vault root with a header `# Knowledge Base Log`
-- **papers_queries/ missing**: create the directory automatically
+- **queries/ missing**: create the directory automatically
 - **articles/ missing**: create the directory automatically
 - **Ambiguous topic assignment**: present candidate topics with confidence levels and let the user decide

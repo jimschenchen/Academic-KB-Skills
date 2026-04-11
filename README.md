@@ -33,9 +33,12 @@ You can also give it a paper name, arXiv ID, or URL — it will download the PDF
 - Parses PDF, extracts metadata and full text
 - Generates structured bilingual paper note (12 sections 0-11, each with Chinese + English in parallel, + complete frontmatter)
 - Automatically leverages HTML annotation from `/kb read` if available
+- **Auto deep-read:** for long/complex papers (≥12 pages, survey, high-relevance), creates per-section deep-read notes in `sections/` with insights, key quotes, and cross-references
 - Suggests topic classification, updates corresponding topic files
 - Embeds 5-10+ wikilinks throughout the note (to topics and other papers)
 - Appends to kb-log
+
+**Flags:** `--deep` (force section notes), `--no-deep` (skip section notes)
 
 ### 0b. Ingest Article — Capture a blog, report, or social media post
 
@@ -85,7 +88,7 @@ Switches to per-question coloring, generates a Q&A Worksheet at the bottom.
 ```
 
 **What it does:**
-- Reads key sections from all paper notes and article notes under that topic
+- Reads key sections from all paper notes, article notes, and section deep-read notes under that topic
 - Presents 3-5 cross-source insights for your review before writing
 - Updates the topic file: framework comparison tables, convergent conclusions, tensions/debates, ranked open questions
 - Performs backlink audit (ensures bidirectional links are complete)
@@ -102,9 +105,9 @@ Switches to per-question coloring, generates a Q&A Worksheet at the bottom.
 ```
 
 **What it does:**
-- Finds relevant content from topic files, paper notes, and article notes (never from general knowledge)
+- Finds relevant content from topic files, paper notes, article notes, and section deep-read notes (never from general knowledge)
 - Synthesizes an answer with `[[wikilink]]` citations for every claim
-- Saves to `papers_queries/` folder; strong answers can be promoted into topics
+- Saves to `queries/` folder; strong answers can be promoted into topics
 
 ### 4. Lint — Health check
 
@@ -134,34 +137,64 @@ Proposed fixes are listed per issue; only applied with your permission.
 
 ```
 vault-root/
-├── papers/
+├── papers/                            ← academic papers
 │   ├── [Paper Title]/
-│   │   ├── [Paper Title].md           ← paper note (Obsidian)
+│   │   ├── [Paper Title].md           ← paper note (12-section bilingual)
 │   │   ├── [Paper Title].pdf          ← original PDF
-│   │   └── annotation.html            ← optional, from /kb read
+│   │   ├── annotation.html            ← optional, from /kb read
+│   │   └── sections/                  ← optional, auto-created for long papers
+│   │       ├── 01-Introduction.md     ← per-section deep-read notes
+│   │       ├── 03-Methodology.md
+│   │       └── ...
 │   └── Paper Database.md              ← Dataview auto-query dashboard
-├── articles/
+├── articles/                          ← blogs, tech reports, social media
 │   ├── [Article Title]/
 │   │   ├── [Article Title].md         ← article note (5-section)
 │   │   └── snapshot.html              ← optional, web page snapshot
 │   └── Article Database.md            ← Dataview auto-query dashboard
-├── papers_topics/
-│   ├── [Topic Name].md                ← topic synthesis (papers + articles)
-│   └── Topics Index.md                ← central hub + mermaid graph
-├── papers_queries/                    ← cross-corpus research Q&A
+├── topics/                            ← cross-source topic syntheses
+│   ├── [Topic Name].md               ← topic synthesis (papers + articles)
+│   └── Topics Index.md               ← central hub + mermaid graph
+├── queries/                           ← cross-corpus research Q&A
 │   └── [YYYY-MM-DD] [Question].md
 └── kb-log.md                          ← append-only audit log
 ```
 
+### Folder Details & Relationships
+
+**`papers/`** — One subfolder per paper, named by the paper's original full title. Each contains the PDF source, a structured 12-section bilingual note (background, problem, methods, results, etc.), an optional HTML annotation from `/kb read`, and optionally a `sections/` subdirectory with per-section deep-read notes for long papers. The paper note's `topics` frontmatter field links it to `topics/` files. Wikilinks in the note body connect to other papers and topics.
+
+**`articles/`** — One subfolder per article (blog, tech report, social media post). Each contains a 5-section note (core argument, key insights, evidence, related papers, personal take) and optionally a web page snapshot. Like papers, the `topics` frontmatter links articles to `topics/` files, and `recommended_papers` creates bridges to `papers/`.
+
+**`topics/`** — Each file synthesizes all papers and articles tagged with that topic. Not a simple list — it provides framework comparison tables, cross-paper patterns, tensions/debates, and ranked open questions. The `Topics Index.md` serves as the central hub with paper counts and a mermaid dependency graph. Topic files link back to individual papers/articles via wikilinks.
+
+**`queries/`** — Saved answers to cross-corpus research questions. Each query file cites specific papers, articles, and topics via wikilinks. Strong query answers can be promoted into new topics or merged into existing ones.
+
+**`kb-log.md`** — Append-only audit trail of all operations (ingest, compile, query, lint) with timestamps, enabling you to track what was added or changed and when.
+
+**How they connect:**
+
+```
+papers/ ←──topics field──→ topics/
+   │                          ↑
+   │ wikilinks            wikilinks
+   ↓                          │
+articles/ ←─topics field──→ topics/
+                              ↑
+                         queries/ (cites papers + topics)
+```
+
+Every paper and article is linked to 1-5 topics via frontmatter. Topic files aggregate insights from all their constituent sources. Queries draw from all three and file back into the system. The graph grows denser with every ingest.
+
 ## Workflow
 
 ```
-/kb ingest paper.pdf           → paper note + topic classification
+/kb ingest paper.pdf           → paper note + sections/ (if long) + topic classification
 /kb ingest article <url>       → article note + topic classification
       ↓ (optional deep reading for papers)
 /kb read paper.pdf             → HTML annotation (open in browser)
       ↓ (after accumulating sources)
-/kb compile "Topic Name"       → topic synthesis (papers + articles)
+/kb compile "Topic Name"       → topic synthesis (papers + articles + section insights)
       ↓
 /kb query "question"           → cross-corpus research Q&A
       ↓ (periodically)
@@ -179,12 +212,14 @@ vault-root/
 ```
 academic-kb/
 ├── SKILL.md                         # main skill file (all procedure definitions)
+├── CHANGELOG.md                     # version history
 ├── README.md                        # this file
 ├── README.zh.md                     # Chinese version
 └── references/
     ├── template.css                 # annotation HTML stylesheet (5-color + dual-column)
     ├── paper-frontmatter.md         # paper note YAML frontmatter schema
-    ├── paper-note-template.md       # paper note 10-section template
+    ├── paper-note-template.md       # paper note 12-section template
+    ├── section-note-template.md     # section deep-read note template
     ├── article-frontmatter.md       # article note YAML frontmatter schema
     └── article-note-template.md     # article note 5-section template
 ```

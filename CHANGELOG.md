@@ -4,6 +4,22 @@ All notable changes to the academic-kb skill are documented here.
 
 ---
 
+## 2026-04-10 — Folder Rename + Query/Compile Deep-Read + README Rewrite
+
+### Renamed
+
+- **`papers_topics/` → `topics/`** — cleaner name, removed redundant `papers_` prefix
+- **`papers_queries/` → `queries/`** — same rationale
+- Updated all references across: SKILL.md, README.md, README.zh.md, paper-frontmatter.md, article-frontmatter.md, and workspace project notes
+
+### Changed
+
+- **Procedure 3 (Query)** — now leverages section deep-read notes: reads 关键 Insight callouts, 原文关键段落 for citable evidence, and cross-reference sections for connections not visible from main notes alone
+- **Procedure 2 (Compile)** — now scans section notes' 关键 Insight callouts to enrich topic synthesis
+- **README.md / README.zh.md** — complete rewrite: added "Folder Details & Relationships" section explaining each folder's purpose and how they interconnect; updated all folder paths; added section deep-read documentation; updated file listing to include CHANGELOG.md and section-note-template.md
+
+---
+
 ## 2026-04-10 — Section Deep-Read on Ingest
 
 **New feature:** When ingesting long or complex papers, the skill now automatically creates per-section deep-read notes in a `sections/` subdirectory, enabling granular insight extraction beyond the main 12-section summary.
@@ -35,6 +51,8 @@ All notable changes to the academic-kb skill are documented here.
 
 - **Vault structure** — `sections/` subdirectory added as optional child of each paper folder.
 - **`references/paper-note-template.md`** — Added "Deep-Read Section Embeds" section and updated writing guidelines to clarify that section notes complement (not replace) main note sections.
+- **Procedure 3 (Query)** — Query now leverages section deep-read notes when available: reads 关键 Insight callouts for pre-extracted insights, 原文关键段落 for citable evidence with page refs, and cross-reference sections for connections not visible from main notes alone.
+- **Procedure 2 (Compile)** — Compile now scans section notes' 关键 Insight callouts to enrich topic synthesis, especially for framework comparisons and cross-paper patterns.
 - **After Ingest summary** — Now reports deep-read status: whether section notes were created, count, and most insight-rich sections.
 - **kb-log format** — Ingest entries now append `[+N section notes]` suffix when deep-read was triggered.
 - **Section count label** — Fixed documentation from "10-section" to "12-section" (sections 0-11) to match actual template.

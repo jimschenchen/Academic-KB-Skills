@@ -33,9 +33,12 @@
 - 解析 PDF，提取元数据和全文
 - 生成结构化中英双语 paper note（12 个 section 0-11，每个 section 中英并列 + 完整 frontmatter）
 - 如果已有 `/kb read` 产出的 HTML annotation，会自动利用它
+- **自动深读：** 对于长论文/复杂论文（≥12 页、survey 类、高相关度），自动在 `sections/` 中创建逐章深读笔记，提取 insight、关键引文和跨论文关联
 - 自动建议 topics 归类，更新对应 topic 文件的「相关论文与资源」
 - 在正文中嵌入 5-10+ 个 wikilinks（到 topics 和其他 papers）
 - 追加 kb-log 记录
+
+**Flags:** `--deep`（强制生成 section notes）, `--no-deep`（跳过 section notes）
 
 ### 0b. Ingest Article — 导入一篇文章
 
@@ -85,7 +88,7 @@
 ```
 
 **做了什么：**
-- 读取该 topic 下所有 paper notes 和 article notes 的关键 section
+- 读取该 topic 下所有 paper notes、article notes 和 section 深读笔记的关键 section
 - 向你展示 3-5 个跨论文的核心洞见，等你确认方向
 - 更新 topic 文件：框架对比表、收敛结论、辩论与张力、开放问题排序
 - 执行 backlink audit（确保双向链接完整）
@@ -102,9 +105,9 @@
 ```
 
 **做了什么：**
-- 从 topic 文件、paper notes 和 article notes 中找相关内容（不用 general knowledge）
+- 从 topic 文件、paper notes、article notes 和 section 深读笔记中找相关内容（不用 general knowledge）
 - 综合回答，每个事实都有 `[[wikilink]]` 出处
-- 答案存到 `papers_queries/` 文件夹，好的答案可以 promote 成新 topic
+- 答案存到 `queries/` 文件夹，好的答案可以 promote 成新 topic
 
 ### 4. Lint — 健康检查
 
@@ -134,34 +137,64 @@
 
 ```
 vault-root/
-├── papers/
+├── papers/                            ← 学术论文
 │   ├── [Paper Title]/
-│   │   ├── [Paper Title].md           ← paper note（Obsidian 笔记）
-│   │   ├── [Paper Title].pdf          ← 原文
-│   │   └── annotation.html            ← 可选，/kb read 产出
+│   │   ├── [Paper Title].md           ← paper note（12-section 中英双语）
+│   │   ├── [Paper Title].pdf          ← 原文 PDF
+│   │   ├── annotation.html            ← 可选，/kb read 产出
+│   │   └── sections/                  ← 可选，长论文自动创建
+│   │       ├── 01-Introduction.md     ← 逐章深读笔记
+│   │       ├── 03-Methodology.md
+│   │       └── ...
 │   └── Paper Database.md              ← Dataview 自动查询仪表盘
-├── articles/
+├── articles/                          ← 博客、技术报告、社交媒体
 │   ├── [Article Title]/
 │   │   ├── [Article Title].md         ← article note（5-section 笔记）
 │   │   └── snapshot.html              ← 可选，网页快照防链接失效
 │   └── Article Database.md            ← Dataview 自动查询仪表盘
-├── papers_topics/
-│   ├── [Topic Name].md                ← topic 综合文件（聚合 papers + articles）
-│   └── Topics Index.md                ← 中心 hub + mermaid 图谱
-├── papers_queries/                    ← 跨语料研究问答
+├── topics/                            ← 跨论文主题综合
+│   ├── [Topic Name].md               ← topic 综合文件（聚合 papers + articles）
+│   └── Topics Index.md               ← 中心 hub + mermaid 图谱
+├── queries/                           ← 跨语料研究问答
 │   └── [YYYY-MM-DD] [Question].md
 └── kb-log.md                          ← 操作审计日志
 ```
 
+### 各文件夹用途与关联
+
+**`papers/`** — 每篇论文一个子文件夹，以论文原标题命名。包含 PDF 原文、12-section 中英双语笔记（背景、问题、方法、结果等）、可选的 `/kb read` HTML 精读标注，以及长论文自动生成的 `sections/` 逐章深读笔记。Paper note 的 `topics` frontmatter 字段将其链接到 `topics/` 文件，正文中的 wikilinks 连接到其他论文和主题。
+
+**`articles/`** — 每篇文章一个子文件夹（博客、技术报告、社交媒体帖子）。包含 5-section 笔记（核心观点、关键洞察、论据、相关论文、个人思考）和可选的网页快照。与论文类似，`topics` frontmatter 链接到 `topics/` 文件，`recommended_papers` 创建到 `papers/` 的桥梁。
+
+**`topics/`** — 每个文件综合了所有标记为该主题的论文和文章。不是简单列表，而是提供框架对比表、跨论文模式、辩论与张力、优先级排序的开放问题。`Topics Index.md` 作为中心 hub，包含论文计数和 mermaid 依赖图。Topic 文件通过 wikilinks 反向链接到各论文/文章。
+
+**`queries/`** — 保存的跨语料研究问题答案。每个 query 文件通过 wikilinks 引用具体的论文、文章和主题。优质的 query 答案可以被提升为新 topic 或合并到已有 topic 中。
+
+**`kb-log.md`** — 仅追加的操作审计日志，记录所有操作（ingest、compile、query、lint）及时间戳，方便追溯什么时候添加或修改了什么。
+
+**关联方式：**
+
+```
+papers/ ←──topics 字段──→ topics/
+   │                          ↑
+   │ wikilinks            wikilinks
+   ↓                          │
+articles/ ←─topics 字段──→ topics/
+                              ↑
+                         queries/（引用 papers + topics）
+```
+
+每篇论文和文章通过 frontmatter 链接到 1-5 个 topic。Topic 文件聚合所有来源的洞见。Query 从三者中提取信息并回馈系统。每次 ingest 都会让知识图谱更密集。
+
 ## 完整工作流
 
 ```
-/kb ingest paper.pdf           → paper note + topic 归类
+/kb ingest paper.pdf           → paper note + sections/（长论文）+ topic 归类
 /kb ingest article <url>       → article note + topic 归类
       ↓ (可选深度精读)
 /kb read paper.pdf             → HTML 精读标注（浏览器打开）
       ↓ (积累资料后)
-/kb compile "Topic Name"       → topic 综合分析（papers + articles）
+/kb compile "Topic Name"       → topic 综合分析（papers + articles + section insights）
       ↓
 /kb query "研究问题"            → 跨语料研究问答
       ↓ (定期)
@@ -179,12 +212,14 @@ vault-root/
 ```
 academic-kb/
 ├── SKILL.md                         # 主 skill 文件（所有流程定义）
+├── CHANGELOG.md                     # 版本历史
 ├── README.md                        # English version
 ├── README.zh.md                     # 中文版（本文件）
 └── references/
     ├── template.css                 # 精读 HTML 的样式表（5色高亮 + 双栏布局）
     ├── paper-frontmatter.md         # Paper note 的 YAML frontmatter schema
-    ├── paper-note-template.md       # Paper note 的 10-section 模板
+    ├── paper-note-template.md       # Paper note 的 12-section 模板
+    ├── section-note-template.md     # Section 深读笔记模板
     ├── article-frontmatter.md       # Article note 的 YAML frontmatter schema
     └── article-note-template.md     # Article note 的 5-section 模板
 ```
