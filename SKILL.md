@@ -287,7 +287,7 @@ Optionally, an HTML annotation from `/kb read` may already exist in the same fol
 
 7. **Classify into topics.** Based on the paper's content, suggest 2-5 topics from the existing `topics/` directory. If a paper clearly belongs to a topic that doesn't exist yet, propose creating it (but don't create it automatically — ask the user first).
 
-8. **Update topic files.** For each topic in the paper's `topics` field, open the corresponding topic file and add a wikilink to the new paper in its `相关论文` section. Use the format: `- [[Paper Title|Short Description]] — one-line summary of relevance`.
+8. **Update topic files.** For each topic in the paper's `topics` field, open the corresponding topic file and add a wikilink to the new paper in its `相关论文` section. **Prefix the entry with 🆕 to mark it as not-yet-compiled.** Use the format: `- 🆕 📄 [[Paper Title|Short Description]] — one-line summary of relevance`. The 🆕 marker signals that this entry has been added since the last `/kb compile` for this topic and its insights have NOT yet been integrated into the topic's Insight Synthesis section. The marker is removed during compile (see Procedure 2, Step 5b).
 
 9. **Update Topics Index.md.** If any paper count changed, update the count in the Topics table.
 
@@ -306,6 +306,7 @@ Present a summary to the user:
 - Deep-read status: whether section notes were created, how many, and which sections are most insight-rich
 - Any proposed new topics
 - Any fields left blank that the user should fill
+- **Compile status**: For each assigned topic, count how many 🆕-marked entries exist in that topic file (including the one just added). If ≥ 3 entries are pending, suggest running `/kb compile <topic>` to integrate the new insights into the synthesis. Example: `⚠️ Auto Researcher 有 3 篇待整合，建议 /kb compile Auto Researcher`
 
 ---
 
@@ -360,7 +361,7 @@ Present a summary to the user:
 
 6. **Classify into topics.** Suggest 1-3 topics from existing `topics/`. Articles may also suggest papers worth ingesting — flag these to the user.
 
-7. **Update topic files.** For each topic in the article's `topics` field, add a wikilink in the topic file's `相关论文与资源` section. Use a 📝 marker to distinguish from papers: `- 📝 [[Article Title|Short Description]] — one-line summary`.
+7. **Update topic files.** For each topic in the article's `topics` field, add a wikilink in the topic file's `相关论文与资源` section. **Prefix the entry with 🆕 to mark it as not-yet-compiled.** Use the format: `- 🆕 📝 [[Article Title|Short Description]] — one-line summary`. The 🆕 marker signals that this entry's insights have NOT yet been integrated into the topic's Insight Synthesis section. The marker is removed during compile (see Procedure 2, Step 5b).
 
 8. **Append to kb-log.md:**
     ```
@@ -374,6 +375,7 @@ Present a summary to the user:
 - Topics assigned
 - Papers mentioned (which are in vault, which are potential ingest candidates)
 - Relevance score
+- **Compile status**: Same as paper ingest — count 🆕-marked entries per topic and suggest compile if ≥ 3 pending.
 
 ---
 
@@ -393,9 +395,10 @@ Compile reads all papers and articles tagged with that topic and updates the top
 
    **Bonus: section deep-read notes.** If a paper has a `sections/` subdirectory, scan the section notes for their **关键 Insight** callouts — these are pre-extracted, high-quality insights that can significantly enrich the topic synthesis. Particularly valuable for building framework comparison tables and identifying cross-paper patterns.
 
-4. **Surface key insights before writing.** Present to the user:
-   - How many papers are in this topic (new since last compile, if known from kb-log.md)
-   - 3-5 key cross-paper insights or patterns
+4. **Surface key insights before writing.** First, scan the topic file's `相关论文与资源` section and identify all entries with a 🆕 marker — these are papers/articles ingested since the last compile. Then present to the user:
+   - How many total papers/articles are in this topic, and **how many are 🆕 (not yet compiled)**
+   - Which specific entries are 🆕 (list them by name)
+   - 3-5 key cross-paper insights or patterns (especially from 🆕 entries)
    - Any contradictions between papers
    - Any gaps (aspects of the topic not covered by any paper)
 
@@ -453,6 +456,8 @@ Compile reads all papers and articles tagged with that topic and updates the top
 
    A compile that merely lists "Paper A says X, Paper B says Y, Paper C says Z" is a failure. The value is in the cross-cutting analysis that no single paper provides. Think of yourself as a researcher writing a mini-survey for a colleague who needs to get up to speed on this topic in 10 minutes.
 
+5b. **Remove 🆕 markers.** After updating the Insight Synthesis, scan the `相关论文与资源` section and **remove the 🆕 prefix from all entries** in this topic file. The 🆕 marker was added during ingest to flag papers/articles whose insights had not yet been integrated into the synthesis. Once compile completes, all entries in this topic have been synthesized, so all 🆕 markers should be removed. For example, `- 🆕 📄 [[Paper|...]]` becomes `- 📄 [[Paper|...]]`.
+
 6. **Backlink audit.** After updating the topic:
    - Check every paper note in this topic — does it contain an inline wikilink to `[[Topic Name]]`? If not, add one at the first relevant mention.
    - Check related topics — does the `related_topics` field and the "与其他主题的关联" section reflect current connections?
@@ -462,7 +467,9 @@ Compile reads all papers and articles tagged with that topic and updates the top
 8. **Append to kb-log.md:**
     ```
     ## [YYYY-MM-DD] compile | [Topic Name] ([N] papers, [word_count] words)
+    - New since last compile: [list of 🆕-marked entries that were just integrated]
     ```
+    Always log which entries were newly integrated (i.e., had the 🆕 marker before this compile). This creates an audit trail of what changed between compiles.
 
 ### Compile --all
 
